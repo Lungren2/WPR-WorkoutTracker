@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>FitPal - Workout Statistics</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="../styles/styles.css" />
+    <script type="module">
+      import { createNavbar } from '../scripts/navbar.js';
+      document.body.prepend(createNavbar('stats'));
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="../scripts/script.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>Your Workout Statistics</h1>
+
+      <div class="stats-summary">
+        <div class="stat-card">
+          <h3>Total Workouts</h3>
+          <p id="totalWorkouts">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Calories</h3>
+          <p id="totalCalories">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Avg Duration</h3>
+          <p id="avgDuration">0 min</p>
+        </div>
+        <div class="stat-card">
+          <h3>Most Common Type</h3>
+          <p id="commonType">-</p>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h2>Weekly Duration Trend</h2>
+          <canvas id="durationChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <h2>Calories by Workout Type</h2>
+          <canvas id="caloriesChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <h2>Workout Type Distribution</h2>
+          <canvas id="typeChart"></canvas>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
