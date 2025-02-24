@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Tracker</title>
+    <script src="script.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: white;
+            color: #1A1A1A;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: 100vh;
+            max-height: 100vh;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            padding: 16px;
+            border-right: 1px solid #E5E5E5;
+            background: white;
+            z-index: 1;
+            overflow-y: auto;
+        }
+
+        /* Header with Logo */
+        .header-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 50px;  /* Space between title and logo */
+        }
+
+        .logo {
+            height: 80px;
+            width: 80px;
+            margin-left: -20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 24px;
+            background-image: url('Background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        /* Add an overlay to ensure content remains readable */
+        .main-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.5);
+            z-index: 0;
+        }
+
+        /* Ensure content stays above the overlay */
+        .main-content > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #1A1A1A;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #1A1A1A;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #F9F9F9;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1A1A1A;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #1A1A1A;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        button:hover {
+            background: #333;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 150px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-value {
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1A1A1A;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid #E5E5E5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="header-container">
+                <h1>Workout Tracker</h1>
+                <img src="exercise.png" alt="Fitness Logo" class="logo">
+            </div>
+            
+            <!-- Log Workout Form -->
+            <div class="log-workout">
+                <h2>Log Workout</h2>
+                <div class="form-group">
+                    <label>Workout Type</label>
+                    <select>
+                        <option>Cycling</option>
+                        <option>Running</option>
+                        <option>Swimming</option>
+                        <option>Strength Training</option>
+                        <option>Yoga</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Duration (minutes)</label>
+                    <input type="number" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Calories Burned</label>
+                    <input type="number" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date">
+                </div>
+                
+                <button>Log Workout</button>
+            </div>
+
+            <!-- Set Goal Section -->
+            <div class="goal-section">
+                <h2>Set Goal</h2>
+                <div class="form-group">
+                    <select>
+                        <option>Calories Goal</option>
+                        <option>Workouts Goal</option>
+                        <option>Duration Goal</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <input type="number" placeholder="Enter target number" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <select>
+                        <option>Per Day</option>
+                        <option>Per Week</option>
+                        <option>Per Month</option>
+                    </select>
+                </div>
+                
+                <p class="goal-example">Example: 500 calories per day, 3 workouts per week</p>
+                <button>Set Goal</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Total Workouts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Calories Burned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Avg. Duration</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+            </div>
+
+            <!-- Workout History -->
+            <div class="workout-history">
+                <h2>Workout History</h2>
+                <!-- History content will go here -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>
