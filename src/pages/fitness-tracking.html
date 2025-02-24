@@ -6,69 +6,97 @@
     <meta name="viewport" content="width=device-width" />
     <link rel="stylesheet" href="../styles/styles.css" />
     <script type="module">
-      import { createNavbar } from '../scripts/navbar.js';
-      document.body.prepend(createNavbar('tracking'));
+      import { createNavbar } from "../scripts/navbar.js"
+      document.body.prepend(createNavbar("tracking"))
     </script>
     <script type="module" src="../scripts/fitness-tracking.js"></script>
   </head>
   <body>
     <main>
-      <h1>Track Your Fitness Goals</h1>
+      <div class="dashboard-container">
+        <section class="welcome-section">
+          <h1>Track Your Fitness Goals</h1>
+          <p class="subtitle">Set and achieve your fitness milestones</p>
+        </section>
 
-      <div class="goals-container">
         <section class="goal-form-section">
           <h2>Set New Goal</h2>
-          <form id="goalForm" class="goal-form">
-            <div class="form-group">
-              <label for="goalType">Goal Type</label>
-              <select id="goalType" name="goalType" required>
-                <option value="">Select a goal type</option>
-                <option value="distance">Total Distance (miles)</option>
-                <option value="calories">Total Calories Burned</option>
-                <option value="workouts">Number of Workouts</option>
-                <option value="duration">Total Duration (minutes)</option>
-                <option value="specific_type">Specific Workout Type</option>
-                <option value="category">Workout Category</option>
-              </select>
-            </div>
+          <div class="form-container">
+            <form id="goalForm" class="goal-form">
+              <div class="form-group">
+                <label for="goalType">Goal Type</label>
+                <select
+                  id="goalType"
+                  name="goalType"
+                  required
+                  class="input-field"
+                >
+                  <option value="">Select a goal type</option>
+                  <option value="distance">Total Distance (miles)</option>
+                  <option value="calories">Total Calories Burned</option>
+                  <option value="workouts">Number of Workouts</option>
+                  <option value="duration">Total Duration (minutes)</option>
+                  <option value="specific_type">Specific Workout Type</option>
+                  <option value="category">Workout Category</option>
+                </select>
+              </div>
 
-            <div id="workoutTypeField" class="form-group" style="display: none;">
-              <label for="workoutType">Workout Type</label>
-              <select id="workoutType" name="workoutType">
-                <option value="running">Running</option>
-                <option value="cycling">Cycling</option>
-                <option value="swimming">Swimming</option>
-                <option value="strength">Strength Training</option>
-                <option value="yoga">Yoga</option>
-                <option value="hiit">HIIT</option>
-              </select>
-            </div>
+              <div
+                id="workoutTypeField"
+                class="form-group"
+                style="display: none"
+              >
+                <label for="workoutType">Workout Type</label>
+                <select id="workoutType" name="workoutType" class="input-field">
+                  <option value="running">Running</option>
+                  <option value="cycling">Cycling</option>
+                  <option value="swimming">Swimming</option>
+                  <option value="strength">Strength Training</option>
+                  <option value="yoga">Yoga</option>
+                  <option value="hiit">HIIT</option>
+                </select>
+              </div>
 
-            <div id="categoryField" class="form-group" style="display: none;">
-              <label for="category">Category</label>
-              <select id="category" name="category">
-                <option value="cardio">Cardio</option>
-                <option value="strength">Strength</option>
-                <option value="flexibility">Flexibility</option>
-              </select>
-            </div>
+              <div id="categoryField" class="form-group" style="display: none">
+                <label for="category">Category</label>
+                <select id="category" name="category" class="input-field">
+                  <option value="cardio">Cardio</option>
+                  <option value="strength">Strength</option>
+                  <option value="flexibility">Flexibility</option>
+                </select>
+              </div>
 
-            <div class="form-group">
-              <label for="goalTarget">Target Amount</label>
-              <input type="number" id="goalTarget" name="goalTarget" min="1" required>
-            </div>
+              <div class="form-group">
+                <label for="goalTarget">Target Amount</label>
+                <input
+                  type="number"
+                  id="goalTarget"
+                  name="goalTarget"
+                  min="1"
+                  required
+                  class="input-field"
+                />
+              </div>
 
-            <div class="form-group">
-              <label for="goalPeriod">Time Period</label>
-              <select id="goalPeriod" name="goalPeriod" required>
-                <option value="">Select time period</option>
-                <option value="week">Week</option>
-                <option value="month">Month</option>
-              </select>
-            </div>
+              <div class="form-group">
+                <label for="goalPeriod">Time Period</label>
+                <select
+                  id="goalPeriod"
+                  name="goalPeriod"
+                  required
+                  class="input-field"
+                >
+                  <option value="">Select time period</option>
+                  <option value="week">Week</option>
+                  <option value="month">Month</option>
+                </select>
+              </div>
 
-            <button type="submit" class="submit-btn">Set Goal</button>
-          </form>
+              <button type="submit" class="primary-btn">
+                <span class="icon">🎯</span> Set Goal
+              </button>
+            </form>
+          </div>
         </section>
 
         <section class="active-goals-section">
