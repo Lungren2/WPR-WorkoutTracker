@@ -1,4 +1,3 @@
-// Date formatting utilities
 export function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString("en-US", {
     weekday: "long",
@@ -12,13 +11,11 @@ export function formatDateForInput(date) {
   return new Date(date).toISOString().split("T")[0]
 }
 
-// String utilities
 export function capitalizeFirstLetter(string) {
   if (typeof string !== "string") return ""
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
-// UI utilities
 export function showNotification(message) {
   const notification = document.createElement("div")
   notification.className = "notification"
@@ -31,7 +28,6 @@ export function showNotification(message) {
   }, 3000)
 }
 
-// Goal-related utilities
 export function getUnitLabel(type) {
   switch (type) {
     case "distance":

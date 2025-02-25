@@ -1,0 +1,73 @@
+/* Styles specific to the workout logging page */
+
+/* Workout form styling */
+.workout-form {
+  margin-bottom: var(--spacing-xl);
+}
+
+.workout-form .form-group select,
+.workout-form .form-group input {
+  width: 100%;
+}
+
+/* Workout list styling */
+.workout-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.workout-details {
+  margin: var(--spacing-sm) 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xs);
+}
+
+.workout-details p {
+  margin-bottom: var(--spacing-xs);
+}
+
+.workout-details strong {
+  color: var(--accent);
+}
+
+.workout-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.workout-actions button {
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.workout-date {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.workout-duration:before {
+  content: "⏱️ ";
+}
+
+.workout-calories:before {
+  content: "🔥 ";
+}
+
+.workout-distance:before {
+  content: "🏃 ";
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .workout-form-section,
+  .workout-list-section {
+    grid-column: 1 / -1;
+  }
+
+  .workout-details {
+    grid-template-columns: 1fr;
+  }
+}

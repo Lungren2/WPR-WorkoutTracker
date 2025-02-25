@@ -1,4 +1,3 @@
-// Workout and achievement data management
 let workouts = JSON.parse(localStorage.getItem("workouts") || "[]")
 let favorites = JSON.parse(localStorage.getItem("favorites") || "[]")
 let achievements = JSON.parse(localStorage.getItem("achievements") || "[]")
@@ -6,7 +5,6 @@ let eventCountdown = JSON.parse(
   localStorage.getItem("eventCountdown") || "null"
 )
 
-// Motivational quotes library
 const motivationalQuotes = [
   "The only bad workout is the one that didn't happen.",
   "Your body can stand almost anything. It's your mind you have to convince.",
@@ -20,7 +18,6 @@ const motivationalQuotes = [
   "Exercise is king. Nutrition is queen. Put them together and you've got a kingdom.",
 ]
 
-// Achievement definitions
 const achievementTypes = {
   FIRST_WORKOUT: {
     id: "first_workout",
@@ -55,7 +52,6 @@ const achievementTypes = {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize features based on available elements
   if (document.getElementById("motivationBtn")) {
     setupMotivationalQuotes()
   }
@@ -77,28 +73,39 @@ document.addEventListener("DOMContentLoaded", () => {
     setupPrintSummary()
   }
 
-  // Initialize statistics if we're on the stats page
-  if (document.getElementById("totalWorkouts")) {
-    updateStatistics()
-    setupCharts()
-  }
-
-  // Check for new achievements
   checkAchievements()
+
+  const forms = document.querySelectorAll("form")
+  forms.forEach((form) => {
+    form.addEventListener("submit", (e) => {
+      const submitBtn = form.querySelector('button[type="submit"]')
+      if (submitBtn) {
+        const originalText = submitBtn.innerHTML
+        submitBtn.innerHTML = `<span class="loading-indicator"></span> Processing...`
+
+        setTimeout(() => {
+          submitBtn.innerHTML = originalText
+        }, 1500)
+      }
+    })
+  })
+
+  const progressBars = document.querySelectorAll(".progress-fill")
+  if (progressBars.length > 0) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("animate")
+          observer.unobserve(entry.target)
+        }
+      })
+    })
+
+    progressBars.forEach((bar) => {
+      observer.observe(bar)
+    })
+  }
 })
-
-// Statistics Functions
-function updateStatistics() {
-  const stats = calculateStatistics()
-
-  document.getElementById("totalWorkouts").textContent = stats.totalWorkouts
-  document.getElementById("totalCalories").textContent = stats.totalCalories
-  document.getElementById(
-    "avgDuration"
-  ).textContent = `${stats.avgDuration} min`
-  document.getElementById("commonType").textContent =
-    stats.mostCommonType || "-"
-}
 
 function calculateStatistics() {
   if (workouts.length === 0) {
@@ -113,7 +120,6 @@ function calculateStatistics() {
   const totalCalories = workouts.reduce((sum, w) => sum + w.calories, 0)
   const totalDuration = workouts.reduce((sum, w) => sum + w.duration, 0)
 
-  // Calculate most common workout type
   const typeCounts = workouts.reduce((acc, w) => {
     acc[w.type] = (acc[w.type] || 0) + 1
     return acc
@@ -131,149 +137,13 @@ function calculateStatistics() {
   }
 }
 
-// Chart Setup
-function setupCharts() {
-  setupDurationChart()
-  setupCaloriesChart()
-  setupTypeDistributionChart()
-}
-
-function setupDurationChart() {
-  const ctx = document.getElementById("durationChart").getContext("2d")
-  const weeklyData = getWeeklyDurationData()
-
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: weeklyData.labels,
-      datasets: [
-        {
-          label: "Minutes",
-          data: weeklyData.data,
-          borderColor: "#3D8D7A",
-          backgroundColor: "rgba(61, 141, 122, 0.1)",
-          tension: 0.4,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-    },
-  })
-}
-
-function setupCaloriesChart() {
-  const ctx = document.getElementById("caloriesChart").getContext("2d")
-  const caloriesData = getCaloriesByType()
-
-  new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: caloriesData.labels,
-      datasets: [
-        {
-          data: caloriesData.data,
-          backgroundColor: ["#3D8D7A", "#A3D1C6", "#B3D8A8", "#FBFFE4"],
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-    },
-  })
-}
-
-function setupTypeDistributionChart() {
-  const ctx = document.getElementById("typeChart").getContext("2d")
-  const typeData = getWorkoutTypeDistribution()
-
-  new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: typeData.labels,
-      datasets: [
-        {
-          data: typeData.data,
-          backgroundColor: ["#3D8D7A", "#A3D1C6", "#B3D8A8", "#FBFFE4"],
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-    },
-  })
-}
-
-// Data Processing Functions
-function getWeeklyDurationData() {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-  const data = new Array(7).fill(0)
-  const labels = []
-
-  const today = new Date()
-  const weekStart = new Date(today)
-  weekStart.setDate(today.getDate() - 6)
-
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(weekStart)
-    date.setDate(weekStart.getDate() + i)
-    labels.push(days[date.getDay()])
-
-    const dayWorkouts = workouts.filter((w) => {
-      const workoutDate = new Date(w.date)
-      return workoutDate.toDateString() === date.toDateString()
-    })
-
-    data[i] = dayWorkouts.reduce((sum, w) => sum + w.duration, 0)
-  }
-
-  return { labels, data }
-}
-
-function getCaloriesByType() {
-  const typeCalories = workouts.reduce((acc, w) => {
-    acc[w.type] = (acc[w.type] || 0) + w.calories
-    return acc
-  }, {})
-
-  return {
-    labels: Object.keys(typeCalories).map(capitalizeFirstLetter),
-    data: Object.values(typeCalories),
-  }
-}
-
-function getWorkoutTypeDistribution() {
-  const typeCounts = workouts.reduce((acc, w) => {
-    acc[w.type] = (acc[w.type] || 0) + 1
-    return acc
-  }, {})
-
-  return {
-    labels: Object.keys(typeCounts).map(capitalizeFirstLetter),
-    data: Object.values(typeCounts),
-  }
-}
-
-// Achievement System
 function checkAchievements() {
   const newAchievements = []
 
-  // First workout achievement
   if (workouts.length === 1 && !hasAchievement("FIRST_WORKOUT")) {
     newAchievements.push(achievementTypes.FIRST_WORKOUT)
   }
 
-  // Streak achievements
   const streak = calculateStreak()
   if (streak >= 3 && !hasAchievement("STREAK_3")) {
     newAchievements.push(achievementTypes.STREAK_3)
@@ -282,7 +152,6 @@ function checkAchievements() {
     newAchievements.push(achievementTypes.STREAK_7)
   }
 
-  // Calorie achievements
   const totalCalories = workouts.reduce((sum, w) => sum + w.calories, 0)
   if (totalCalories >= 500 && !hasAchievement("CALORIES_500")) {
     newAchievements.push(achievementTypes.CALORIES_500)
@@ -291,7 +160,6 @@ function checkAchievements() {
     newAchievements.push(achievementTypes.CALORIES_1000)
   }
 
-  // Award new achievements
   if (newAchievements.length > 0) {
     awardAchievements(newAchievements)
   }
@@ -306,6 +174,7 @@ function awardAchievements(newAchievements) {
     achievements.push({
       ...achievement,
       dateEarned: new Date().toISOString(),
+      isNew: true,
     })
 
     showNotification(`🏆 New Achievement: ${achievement.title}!`)
@@ -314,6 +183,16 @@ function awardAchievements(newAchievements) {
   localStorage.setItem("achievements", JSON.stringify(achievements))
   if (document.getElementById("achievementsGrid")) {
     displayAchievements()
+
+    document
+      .querySelectorAll('.achievement-card[data-new="true"]')
+      .forEach((card) => {
+        card.classList.add("new-achievement")
+
+        setTimeout(() => {
+          card.removeAttribute("data-new")
+        }, 1000)
+      })
   }
 }
 
@@ -344,7 +223,6 @@ function calculateStreak() {
   return streak
 }
 
-// Motivational Quotes
 function setupMotivationalQuotes() {
   const motivationBtn = document.getElementById("motivationBtn")
   const quoteText = document.getElementById("motivationalQuote")
@@ -361,14 +239,12 @@ function setupMotivationalQuotes() {
   }
 }
 
-// Event Countdown
 function setupCountdown() {
   const countdownSetup = document.getElementById("countdownSetup")
   const countdownDisplay = document.getElementById("countdownDisplay")
   const setCountdownBtn = document.getElementById("setCountdown")
   const resetCountdownBtn = document.getElementById("resetCountdown")
 
-  // Display existing countdown if there is one
   if (eventCountdown) {
     displayCountdown(eventCountdown)
   }
@@ -385,7 +261,6 @@ function setupCountdown() {
     }
   })
 
-  // Add reset functionality
   if (resetCountdownBtn) {
     resetCountdownBtn.addEventListener("click", () => {
       eventCountdown = null
@@ -393,7 +268,6 @@ function setupCountdown() {
       countdownDisplay.style.display = "none"
       countdownSetup.style.display = "block"
 
-      // Clear any existing event completed message
       const completedMessage = document.querySelector(".event-completed")
       if (completedMessage) {
         completedMessage.remove()
@@ -411,10 +285,8 @@ function displayCountdown(event) {
   countdownDisplay.style.display = "block"
   displayEventName.textContent = event.name
 
-  // Start the countdown immediately
   updateCountdown(event)
 
-  // Update every second instead of every minute
   const timer = setInterval(() => {
     const completed = updateCountdown(event)
     if (completed) {
@@ -428,7 +300,6 @@ function updateCountdown(event) {
   const eventDate = new Date(event.date)
   const diff = eventDate - now
 
-  // If the event has passed
   if (diff < 0) {
     document.getElementById("days").textContent = "0"
     document.getElementById("hours").textContent = "0"
@@ -443,38 +314,44 @@ function updateCountdown(event) {
       )
     }
 
-    return true // Signal to stop the interval
+    return true
   }
 
-  // Calculate time units
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
   const seconds = Math.floor((diff % (1000 * 60)) / 1000)
 
-  // Update the display with padded numbers
-  document.getElementById("days").textContent = days
-  document.getElementById("hours").textContent = hours
-    .toString()
-    .padStart(2, "0")
-  document.getElementById("minutes").textContent = minutes
-    .toString()
-    .padStart(2, "0")
-  document.getElementById("seconds").textContent = seconds
-    .toString()
-    .padStart(2, "0")
+  const daysStr = days.toString()
+  const hoursStr = hours.toString().padStart(2, "0")
+  const minutesStr = minutes.toString().padStart(2, "0")
+  const secondsStr = seconds.toString().padStart(2, "0")
 
-  return false // Signal to continue the interval
+  animateCountdownChange(document.getElementById("days"), daysStr)
+  animateCountdownChange(document.getElementById("hours"), hoursStr)
+  animateCountdownChange(document.getElementById("minutes"), minutesStr)
+  animateCountdownChange(document.getElementById("seconds"), secondsStr)
+
+  return false
 }
 
-// Print Summary
 function setupPrintSummary() {
-  console.log("print")
   const printBtn = document.getElementById("printSummary")
 
   printBtn.addEventListener("click", () => {
     const printContent = document.getElementById("printContent")
     const stats = calculateStatistics()
+
+    // Check if workouts exist
+    if (!workouts || workouts.length === 0) {
+      printContent.innerHTML = `
+        <h2>Workout Summary</h2>
+        <p>Generated on: ${new Date().toLocaleDateString()}</p>
+        <p>No workouts recorded yet.</p>
+      `
+      window.print()
+      return
+    }
 
     printContent.innerHTML = `
       <h2>Workout Summary</h2>
@@ -484,7 +361,7 @@ function setupPrintSummary() {
         <p>Total Workouts: ${stats.totalWorkouts}</p>
         <p>Total Calories: ${stats.totalCalories}</p>
         <p>Average Duration: ${stats.avgDuration} minutes</p>
-        <p>Most Common Type: ${stats.mostCommonType}</p>
+        <p>Most Common Type: ${stats.mostCommonType || "N/A"}</p>
       </div>
       
       <h3>Recent Workouts</h3>
@@ -504,24 +381,27 @@ function setupPrintSummary() {
         .join("")}
       
       <h3>Achievements</h3>
-      ${achievements
-        .map(
-          (a) => `
-        <div class="achievement-entry">
-          <p>${a.icon} ${a.title}</p>
-          <p>${a.description}</p>
-          <p>Earned: ${new Date(a.dateEarned).toLocaleDateString()}</p>
-        </div>
-      `
-        )
-        .join("")}
+      ${
+        achievements && achievements.length > 0
+          ? achievements
+              .map(
+                (a) => `
+            <div class="achievement-entry">
+              <p>${a.icon} ${a.title}</p>
+              <p>${a.description}</p>
+              <p>Earned: ${new Date(a.dateEarned).toLocaleDateString()}</p>
+            </div>
+          `
+              )
+              .join("")
+          : "<p>No achievements earned yet.</p>"
+      }
     `
 
     window.print()
   })
 }
 
-// Helper Functions
 import { capitalizeFirstLetter, showNotification } from "./utils.js"
 
 function displayAchievements() {
@@ -540,7 +420,6 @@ function displayAchievements() {
   achievements.forEach((achievement) => {
     const achievementCard = template.content.cloneNode(true)
 
-    // Fill in the achievement card details
     achievementCard.querySelector(".badge-icon").textContent = achievement.icon
     achievementCard.querySelector(".badge-title").textContent =
       achievement.title
@@ -554,4 +433,16 @@ function displayAchievements() {
 
     achievementsGrid.appendChild(achievementCard)
   })
+}
+
+function animateCountdownChange(element, newValue) {
+  if (element.textContent !== newValue) {
+    element.classList.add("flip")
+    setTimeout(() => {
+      element.textContent = newValue
+      setTimeout(() => {
+        element.classList.remove("flip")
+      }, 250)
+    }, 250)
+  }
 }

@@ -6,7 +6,6 @@ import {
   isWithinPeriod,
 } from "./utils.js"
 
-// Goal management
 let goals = JSON.parse(localStorage.getItem("fitness_goals") || "[]")
 const workouts = JSON.parse(localStorage.getItem("workouts") || "[]")
 
@@ -14,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
   displayGoals()
   setupGoalTypeHandler()
 
-  // Set up form submission
   document
     .getElementById("goalForm")
     .addEventListener("submit", handleGoalSubmission)
@@ -28,14 +26,11 @@ function setupGoalTypeHandler() {
   goalTypeSelect.addEventListener("change", (e) => {
     const goalType = e.target.value
 
-    // Show/hide workout type selector
     workoutTypeField.style.display =
       goalType === "specific_type" ? "block" : "none"
 
-    // Show/hide category selector
     categoryField.style.display = goalType === "category" ? "block" : "none"
 
-    // Update target label based on goal type
     updateTargetLabel(goalType)
   })
 }
@@ -80,12 +75,10 @@ function handleGoalSubmission(e) {
     completed: false,
   }
 
-  // Add workout type for specific workout type goals
   if (goalType === "specific_type") {
     goal.workoutType = document.getElementById("workoutType").value
   }
 
-  // Add category for category-based goals
   if (goalType === "category") {
     goal.category = document.getElementById("category").value
   }
@@ -330,7 +323,57 @@ function showNotification(message) {
   }, 3000)
 }
 
-// Check goals periodically
+function animateGoalCompletion(goalId) {
+  const goalCard = document.querySelector(`.goal-card[data-id="${goalId}"]`)
+  if (goalCard) {
+    goalCard.classList.add("goal-completed")
+
+    for (let i = 0; i < 50; i++) {
+      createConfettiParticle(goalCard)
+    }
+  }
+}
+
+function createConfettiParticle(container) {
+  const colors = ["#3d8d7a", "#a3d1c6", "#b3d8a8", "#fbffe4"]
+  const particle = document.createElement("div")
+
+  particle.style.position = "absolute"
+  particle.style.width = "10px"
+  particle.style.height = "10px"
+  particle.style.backgroundColor =
+    colors[Math.floor(Math.random() * colors.length)]
+  particle.style.borderRadius = "50%"
+  particle.style.pointerEvents = "none"
+
+  const rect = container.getBoundingClientRect()
+  particle.style.left = rect.left + rect.width / 2 + "px"
+  particle.style.top = rect.top + rect.height / 2 + "px"
+
+  document.body.appendChild(particle)
+
+  const angle = Math.random() * Math.PI * 2
+  const velocity = 5 + Math.random() * 5
+  const tx = Math.cos(angle) * (Math.random() * 100)
+  const ty = Math.sin(angle) * (Math.random() * 100) - 150
+
+  particle.animate(
+    [
+      { transform: "translate(0, 0) rotate(0deg)", opacity: 1 },
+      {
+        transform: `translate(${tx}px, ${ty}px) rotate(${
+          Math.random() * 360
+        }deg)`,
+        opacity: 0,
+      },
+    ],
+    {
+      duration: 1000 + Math.random() * 1000,
+      easing: "cubic-bezier(0.1, 0.8, 0.2, 1)",
+    }
+  ).onfinish = () => particle.remove()
+}
+
 setInterval(() => {
   goals = goals.map((goal) => {
     if (!goal.completed) {
@@ -339,6 +382,8 @@ setInterval(() => {
         goal.completed = true
         goal.completionDate = new Date().toISOString()
         showNotification("🎉 Congratulations! You've completed a goal!")
+
+        setTimeout(() => animateGoalCompletion(goal.id), 100)
       }
     }
     return goal
@@ -346,4 +391,4 @@ setInterval(() => {
 
   localStorage.setItem("fitness_goals", JSON.stringify(goals))
   displayGoals()
-}, 60000) // Check every minute
+}, 60000)

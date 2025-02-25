@@ -1,14 +1,8 @@
-import {
-  formatDate,
-  formatDateForInput,
-  capitalizeFirstLetter,
-  showNotification,
-  isWithinPeriod,
-} from "./utils.js"
-
+// Initialize workout history from localStorage or empty array
 let workouts = JSON.parse(localStorage.getItem("workouts") || "[]")
 let goals = JSON.parse(localStorage.getItem("fitness_goals") || "[]")
 
+// Workout type configurations
 const workoutTypes = {
   running: {
     requiresDistance: true,
@@ -51,6 +45,12 @@ const workoutTypes = {
   },
 }
 
+// Format date to YYYY-MM-DD for input default value
+const formatDateForInput = (date) => {
+  return new Date(date).toISOString().split("T")[0]
+}
+
+// Set up form event listeners
 document.addEventListener("DOMContentLoaded", () => {
   const dateInput = document.getElementById("date")
   const workoutTypeSelect = document.getElementById("workoutType")
@@ -58,12 +58,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const durationInput = document.getElementById("duration")
   const caloriesInput = document.getElementById("calories")
 
+  // Set default date to today
   dateInput.value = formatDateForInput(new Date())
 
+  // Handle workout type changes
   workoutTypeSelect.addEventListener("change", (e) => {
     const workoutType = workoutTypes[e.target.value]
 
     if (workoutType) {
+      // Show/hide distance field
       distanceField.style.display = workoutType.requiresDistance
         ? "block"
         : "none"
@@ -71,8 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("distance").value = ""
       }
 
+      // Set default duration
       durationInput.value = workoutType.defaultDuration
 
+      // Calculate estimated calories
       const estimatedCalories = Math.round(
         workoutType.caloriesPerMinute * workoutType.defaultDuration
       )
@@ -84,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
 
+  // Update calories when duration changes
   durationInput.addEventListener("input", (e) => {
     const workoutType = workoutTypes[workoutTypeSelect.value]
     if (workoutType) {
@@ -98,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
   displayWorkouts()
 })
 
+// Handle form submission
 document.getElementById("workoutForm").addEventListener("submit", (e) => {
   e.preventDefault()
 
@@ -116,25 +123,34 @@ document.getElementById("workoutForm").addEventListener("submit", (e) => {
     category: workoutTypes[workoutType].category,
   }
 
+  // Add distance if applicable
   if (workoutTypes[workoutType]?.requiresDistance) {
     workout.distance =
       parseFloat(document.getElementById("distance").value) || 0
   }
 
+  // Add to workouts array
   workouts.unshift(workout)
 
+  // Save to localStorage
   localStorage.setItem("workouts", JSON.stringify(workouts))
 
+  // Update all active goals
   updateGoals(workout)
 
+  // Reset form
   e.target.reset()
 
+  // Set date back to today
   document.getElementById("date").value = formatDateForInput(new Date())
 
+  // Hide distance field
   document.getElementById("distanceField").style.display = "none"
 
+  // Refresh display
   displayWorkouts()
 
+  // Show success message
   showNotification("Workout logged successfully!")
 })
 
@@ -154,6 +170,7 @@ function updateGoals(newWorkout) {
       goal.completionDate = new Date().toISOString()
       goalsUpdated = true
 
+      // Schedule notification for the next frame to avoid blocking
       setTimeout(() => {
         showNotification(
           `🎉 Congratulations! You've completed your goal: ${formatGoalTitle(
@@ -175,19 +192,21 @@ function isWorkoutRelevantForGoal(workout, goal) {
   const workoutDate = new Date(workout.date)
   const goalStartDate = new Date(goal.startDate)
 
+  // Check if workout is within goal period
   if (!isWithinPeriod(workoutDate, goalStartDate, goal.period)) {
     return false
   }
 
+  // Check if workout type matches goal criteria
   switch (goal.type) {
     case "distance":
       return workoutTypes[workout.type]?.requiresDistance
     case "calories":
-      return true
+      return true // All workouts contribute to calorie goals
     case "workouts":
-      return true
+      return true // All workouts count towards workout count goals
     case "duration":
-      return true
+      return true // All workouts contribute to duration goals
     case "specific_type":
       return workout.type === goal.workoutType
     case "category":
@@ -226,16 +245,20 @@ function calculateGoalProgress(goal) {
   }
 }
 
+// Display workouts
 function displayWorkouts() {
   const workoutList = document.getElementById("workoutList")
   workoutList.innerHTML = workouts
     .map((workout) => {
       const workoutConfig = workoutTypes[workout.type]
-      const distanceInfo = workout.distance
-        ? `<p><strong>Distance:</strong> ${workout.distance} ${
-            workoutConfig?.distanceLabel || "miles"
-          }</p>`
-        : ""
+      const distanceInfo = workout.distance ? (
+        <p>
+          <strong>Distance:</strong> ${workout.distance} $
+          {workoutConfig?.distanceLabel || "miles"}
+        </p>
+      ) : (
+        ""
+      )
 
       return `
       <div class="workout-card">
@@ -260,11 +283,13 @@ function displayWorkouts() {
     .join("")
 }
 
+// Delete workout
 window.deleteWorkout = (id) => {
   if (confirm("Are you sure you want to delete this workout?")) {
     workouts = workouts.filter((workout) => workout.id !== id)
     localStorage.setItem("workouts", JSON.stringify(workouts))
 
+    // Recalculate all active goals
     goals = goals.map((goal) => {
       if (!goal.completed) {
         const progress = calculateGoalProgress(goal)
@@ -280,6 +305,16 @@ window.deleteWorkout = (id) => {
     displayWorkouts()
     showNotification("Workout deleted successfully!")
   }
+}
+
+function isWithinPeriod(date, startDate, period) {
+  const endDate = new Date(startDate)
+  if (period === "week") {
+    endDate.setDate(endDate.getDate() + 7)
+  } else if (period === "month") {
+    endDate.setMonth(endDate.getMonth() + 1)
+  }
+  return date >= startDate && date <= endDate
 }
 
 function formatGoalTitle(goal) {
@@ -304,4 +339,128 @@ function getUnitLabel(type) {
     default:
       return ""
   }
+}
+
+// Helper functions
+function capitalizeFirstLetter(string) {
+  if (typeof string !== "string") return ""
+  return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
+}
+
+function showNotification(message) {
+  const notification = document.createElement("div")
+  notification.className = "notification"
+  notification.textContent = message
+  document.body.appendChild(notification)
+
+  setTimeout(() => {
+    notification.classList.add("fade-out")
+    setTimeout(() => notification.remove(), 500)
+  }, 3000)
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const workoutForm = document.getElementById("workoutForm")
+  const workoutList = document.getElementById("workoutList")
+
+  // Load saved workouts from localStorage
+  loadWorkouts()
+
+  // Handle form submission
+  workoutForm.addEventListener("submit", (event) => {
+    event.preventDefault()
+    logWorkout()
+  })
+
+  function logWorkout() {
+    const workoutType = document.getElementById("workoutType").value
+    const duration = document.getElementById("duration").value
+    const calories = document.getElementById("calories").value
+    const date = document.getElementById("date").value
+
+    const workout = {
+      id: Date.now(),
+      type: workoutType,
+      duration,
+      calories,
+      date,
+      favorite: false,
+    }
+
+    let workouts = JSON.parse(localStorage.getItem("workouts")) || []
+    workouts.push(workout)
+    localStorage.setItem("workouts", JSON.stringify(workouts))
+
+    renderWorkout(workout)
+    workoutForm.reset()
+  }
+
+  function renderWorkout(workout) {
+    const workoutItem = document.createElement("div")
+    workoutItem.classList.add("workout")
+    workoutItem.dataset.id = workout.id
+    workoutItem.innerHTML = `
+          <p><strong>Type:</strong> ${workout.type}</p>
+          <p><strong>Duration:</strong> ${workout.duration} mins</p>
+          <p><strong>Calories:</strong> ${workout.calories}</p>
+          <p><strong>Date:</strong> ${workout.date}</p>
+          <button class="favorite-btn ${
+            workout.favorite ? "favorited" : ""
+          }" onclick="toggleFavorite(${workout.id})">❤</button>
+      `
+    workoutList.appendChild(workoutItem)
+  }
+
+  function loadWorkouts() {
+    let workouts = JSON.parse(localStorage.getItem("workouts")) || []
+    workoutList.innerHTML = ""
+    workouts.forEach(renderWorkout)
+  }
+
+  window.toggleFavorite = (id) => {
+    let workouts = JSON.parse(localStorage.getItem("workouts")) || []
+    let updatedWorkouts = workouts.map((workout) => {
+      if (workout.id === id) {
+        workout.favorite = !workout.favorite
+        if (workout.favorite) {
+          triggerCelebration()
+        }
+      }
+      return workout
+    })
+
+    localStorage.setItem("workouts", JSON.stringify(updatedWorkouts))
+    loadWorkouts()
+  }
+})
+
+// 🎉 Celebration Effect
+function triggerCelebration() {
+  const celebrationContainer = document.getElementById("celebration-container")
+
+  for (let i = 0; i < 20; i++) {
+    let confetti = document.createElement("div")
+    confetti.classList.add("confetti")
+    confetti.style.left = Math.random() * 100 + "vw"
+    confetti.style.animationDuration = Math.random() * 2 + 1 + "s"
+
+    celebrationContainer.appendChild(confetti)
+
+    setTimeout(() => {
+      confetti.remove()
+    }, 2000)
+  }
+}
+const userStats = JSON.parse(localStorage.getItem("userStats")) || {
+  totalCalories: 0,
+  totalWorkouts: 0,
+  badges: [],
 }

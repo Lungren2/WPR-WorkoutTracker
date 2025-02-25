@@ -77,7 +77,7 @@ h4 {
 
 .brand {
   color: var(--accent);
-  font-size: 1.5rem;
+  font-size: 2.25rem;
   font-weight: bold;
   text-decoration: none;
 }
@@ -139,7 +139,7 @@ h4 {
 
 /* Main Content */
 main {
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
   padding: var(--spacing-xl);
 }
@@ -170,7 +170,10 @@ main {
   box-shadow: var(--shadow-md);
 }
 
-.print-section,
+.print-section {
+  grid-column: 1 / -1;
+}
+
 .workout-list-section {
   grid-column: 2 / -1;
 }
@@ -743,4 +746,175 @@ textarea:invalid {
   .btn {
     width: 100%;
   }
+}
+
+/* Add these animations to your existing CSS file */
+
+/* Pulse animation for achievement badges */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Rotate animation for loading states */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Bounce animation for new achievements */
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Shimmer effect for goal completion */
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+/* Progress bar animation */
+@keyframes progressFill {
+  from {
+    width: 0%;
+  }
+}
+
+/* Apply these animations to elements */
+.achievement-card:hover {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+.loading-indicator {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(61, 141, 122, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--accent);
+  animation: rotate 1s infinite linear;
+}
+
+.new-achievement {
+  animation: bounce 1s ease;
+}
+
+.goal-completed .progress-fill {
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    var(--accent-light) 50%,
+    var(--accent) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.progress-fill.animate {
+  animation: progressFill 1s ease-out forwards;
+}
+
+/* Fade-in animation for page content */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-container > section {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Staggered animation for multiple elements */
+.dashboard-container > section:nth-child(1) {
+  animation-delay: 0s;
+}
+.dashboard-container > section:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.dashboard-container > section:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.dashboard-container > section:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.dashboard-container > section:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+/* Shake animation for error states */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.input-error:focus {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Countdown number flip animation */
+@keyframes flipNumber {
+  0% {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: rotateX(90deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+.time-block span.flip {
+  animation: flipNumber 0.5s ease;
 }
