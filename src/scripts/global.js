@@ -1,3 +1,7 @@
+import { displayWorkouts, workoutTypes } from "./workout-logger.js"
+
+import { capitalizeFirstLetter, showNotification } from "./utils.js"
+
 let workouts = JSON.parse(localStorage.getItem("workouts") || "[]")
 let favorites = JSON.parse(localStorage.getItem("favorites") || "[]")
 let achievements = JSON.parse(localStorage.getItem("achievements") || "[]")
@@ -64,13 +68,26 @@ document.addEventListener("DOMContentLoaded", () => {
     displayAchievements()
   }
 
-  if (document.getElementById("workoutsList")) {
-    displayWorkouts()
+  // Check if we're on a page with workout list
+  const workoutsList = document.getElementById("workoutsList")
+  if (workoutsList) {
+    displayHomeWorkouts(false)
     setupWorkoutFilters()
   }
 
-  if (document.getElementById("printSummary")) {
-    setupPrintSummary()
+  // Check if we're on the workout logging page
+  const workoutList = document.getElementById("workoutList")
+  if (workoutList && typeof displayWorkouts === "function") {
+    try {
+      displayWorkouts()
+    } catch (error) {
+      console.error("Error displaying workouts:", error)
+    }
+  }
+
+  const printButton = document.getElementById("printSummary")
+  if (printButton) {
+    printButton.addEventListener("click", setupPrintSummary)
   }
 
   checkAchievements()
@@ -336,73 +353,121 @@ function updateCountdown(event) {
 }
 
 function setupPrintSummary() {
-  const printBtn = document.getElementById("printSummary")
+  console.log("Print summary function called")
+  const printContent = document.getElementById("printContent")
+  const stats = calculateStatistics()
 
-  printBtn.addEventListener("click", () => {
-    const printContent = document.getElementById("printContent")
-    const stats = calculateStatistics()
-
-    // Check if workouts exist
-    if (!workouts || workouts.length === 0) {
-      printContent.innerHTML = `
-        <h2>Workout Summary</h2>
-        <p>Generated on: ${new Date().toLocaleDateString()}</p>
-        <p>No workouts recorded yet.</p>
-      `
-      window.print()
-      return
-    }
-
+  // Check if workouts exist
+  if (!workouts || workouts.length === 0) {
     printContent.innerHTML = `
       <h2>Workout Summary</h2>
       <p>Generated on: ${new Date().toLocaleDateString()}</p>
-      
-      <div class="summary-stats">
-        <p>Total Workouts: ${stats.totalWorkouts}</p>
-        <p>Total Calories: ${stats.totalCalories}</p>
-        <p>Average Duration: ${stats.avgDuration} minutes</p>
-        <p>Most Common Type: ${stats.mostCommonType || "N/A"}</p>
-      </div>
-      
-      <h3>Recent Workouts</h3>
-      ${workouts
-        .slice(0, 10)
-        .map(
-          (w) => `
-        <div class="workout-entry">
-          <p>${new Date(w.date).toLocaleDateString()}: ${capitalizeFirstLetter(
-            w.type
-          )}</p>
-          <p>Duration: ${w.duration} minutes</p>
-          <p>Calories: ${w.calories}</p>
-        </div>
-      `
-        )
-        .join("")}
-      
-      <h3>Achievements</h3>
-      ${
-        achievements && achievements.length > 0
-          ? achievements
-              .map(
-                (a) => `
-            <div class="achievement-entry">
-              <p>${a.icon} ${a.title}</p>
-              <p>${a.description}</p>
-              <p>Earned: ${new Date(a.dateEarned).toLocaleDateString()}</p>
-            </div>
-          `
-              )
-              .join("")
-          : "<p>No achievements earned yet.</p>"
-      }
+      <p>No workouts recorded yet.</p>
     `
-
     window.print()
-  })
+    return
+  }
+
+  printContent.innerHTML = `
+    <h2>Workout Summary</h2>
+    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+    
+    <div class="summary-stats">
+      <p>Total Workouts: ${stats.totalWorkouts}</p>
+      <p>Total Calories: ${stats.totalCalories}</p>
+      <p>Average Duration: ${stats.avgDuration} minutes</p>
+      <p>Most Common Type: ${stats.mostCommonType || "N/A"}</p>
+    </div>
+    
+    <h3>Recent Workouts</h3>
+    ${workouts
+      .slice(0, 10)
+      .map(
+        (w) => `
+      <div class="workout-entry">
+        <p>${new Date(w.date).toLocaleDateString()}: ${capitalizeFirstLetter(
+          w.type
+        )}</p>
+        <p>Duration: ${w.duration} minutes</p>
+        <p>Calories: ${w.calories}</p>
+      </div>
+    `
+      )
+      .join("")}
+    
+    <h3>Achievements</h3>
+    ${
+      achievements && achievements.length > 0
+        ? achievements
+            .map(
+              (a) => `
+          <div class="achievement-entry">
+            <p>${a.icon} ${a.title}</p>
+            <p>${a.description}</p>
+            <p>Earned: ${new Date(a.dateEarned).toLocaleDateString()}</p>
+          </div>
+        `
+            )
+            .join("")
+        : "<p>No achievements earned yet.</p>"
+    }
+  `
+
+  window.print()
 }
 
-import { capitalizeFirstLetter, showNotification } from "./utils.js"
+function setupWorkoutFilters() {
+  displayHomeWorkouts(true)
+}
+
+function displayHomeWorkouts() {
+  const workoutsList = document.getElementById("workoutsList")
+  if (!workoutsList) return
+
+  // Filter workouts based on favorites if needed
+  let displayedWorkouts = workouts
+  displayedWorkouts = workouts.filter((workout) =>
+    favorites.includes(workout.id)
+  )
+
+  // If no workouts to display
+  if (displayedWorkouts.length === 0) {
+    workoutsList.innerHTML =
+      '<p class="no-workouts">No workouts to display.</p>'
+    return
+  }
+
+  // Get the template
+  const template = document.getElementById("workoutTemplate")
+  workoutsList.innerHTML = ""
+
+  // Display up to 5 most recent workouts
+  displayedWorkouts.slice(0, 5).forEach((workout) => {
+    const workoutCard = template.content.cloneNode(true)
+
+    workoutCard.querySelector(".workout-title").textContent =
+      capitalizeFirstLetter(workout.type)
+    workoutCard.querySelector(".workout-date").textContent = `Date: ${new Date(
+      workout.date
+    ).toLocaleDateString()}`
+    workoutCard.querySelector(
+      ".workout-duration"
+    ).textContent = `Duration: ${workout.duration} minutes`
+    workoutCard.querySelector(
+      ".workout-calories"
+    ).textContent = `Calories: ${workout.calories}`
+
+    if (workout.distance) {
+      workoutCard.querySelector(".workout-distance").textContent = `Distance: ${
+        workout.distance
+      } ${workoutTypes[workout.type]?.distanceLabel || "miles"}`
+    } else {
+      workoutCard.querySelector(".workout-distance").textContent = ""
+    }
+
+    workoutsList.appendChild(workoutCard)
+  })
+}
 
 function displayAchievements() {
   const achievementsGrid = document.getElementById("achievementsGrid")

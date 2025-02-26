@@ -3,13 +3,13 @@ import {
   formatDateForInput,
   capitalizeFirstLetter,
   showNotification,
-  isWithinPeriod,
 } from "./utils.js"
 
 let workouts = JSON.parse(localStorage.getItem("workouts") || "[]")
+let favorites = JSON.parse(localStorage.getItem("favorites") || "[]")
 let goals = JSON.parse(localStorage.getItem("fitness_goals") || "[]")
 
-const workoutTypes = {
+export const workoutTypes = {
   running: {
     requiresDistance: true,
     defaultDuration: 30,
@@ -58,85 +58,93 @@ document.addEventListener("DOMContentLoaded", () => {
   const durationInput = document.getElementById("duration")
   const caloriesInput = document.getElementById("calories")
 
-  dateInput.value = formatDateForInput(new Date())
+  // Only proceed if we're on the workout logging page
+  if (dateInput && workoutTypeSelect) {
+    dateInput.value = formatDateForInput(new Date())
 
-  workoutTypeSelect.addEventListener("change", (e) => {
-    const workoutType = workoutTypes[e.target.value]
+    workoutTypeSelect.addEventListener("change", (e) => {
+      const workoutType = workoutTypes[e.target.value]
 
-    if (workoutType) {
-      distanceField.style.display = workoutType.requiresDistance
-        ? "block"
-        : "none"
-      if (!workoutType.requiresDistance) {
-        document.getElementById("distance").value = ""
+      if (workoutType) {
+        distanceField.style.display = workoutType.requiresDistance
+          ? "block"
+          : "none"
+        if (!workoutType.requiresDistance) {
+          document.getElementById("distance").value = ""
+        }
+
+        durationInput.value = workoutType.defaultDuration
+
+        const estimatedCalories = Math.round(
+          workoutType.caloriesPerMinute * workoutType.defaultDuration
+        )
+        caloriesInput.value = estimatedCalories
+      } else {
+        distanceField.style.display = "none"
+        durationInput.value = ""
+        caloriesInput.value = ""
       }
+    })
 
-      durationInput.value = workoutType.defaultDuration
+    durationInput.addEventListener("input", (e) => {
+      const workoutType = workoutTypes[workoutTypeSelect.value]
+      if (workoutType) {
+        const duration = parseInt(e.target.value) || 0
+        const estimatedCalories = Math.round(
+          workoutType.caloriesPerMinute * duration
+        )
+        caloriesInput.value = estimatedCalories
+      }
+    })
+  }
 
-      const estimatedCalories = Math.round(
-        workoutType.caloriesPerMinute * workoutType.defaultDuration
-      )
-      caloriesInput.value = estimatedCalories
-    } else {
-      distanceField.style.display = "none"
-      durationInput.value = ""
-      caloriesInput.value = ""
-    }
-  })
-
-  durationInput.addEventListener("input", (e) => {
-    const workoutType = workoutTypes[workoutTypeSelect.value]
-    if (workoutType) {
-      const duration = parseInt(e.target.value) || 0
-      const estimatedCalories = Math.round(
-        workoutType.caloriesPerMinute * duration
-      )
-      caloriesInput.value = estimatedCalories
-    }
-  })
-
+  // Call displayWorkouts regardless of which page we're on
   displayWorkouts()
 })
 
-document.getElementById("workoutForm").addEventListener("submit", (e) => {
-  e.preventDefault()
+// Make sure the form event listener only runs if the form exists
+const workoutForm = document.getElementById("workoutForm")
+if (workoutForm) {
+  workoutForm.addEventListener("submit", (e) => {
+    e.preventDefault()
 
-  const workoutType = document.getElementById("workoutType").value
-  const duration = parseInt(document.getElementById("duration").value)
-  const calories = parseInt(document.getElementById("calories").value)
-  const date = document.getElementById("date").value
+    const workoutType = document.getElementById("workoutType").value
+    const duration = parseInt(document.getElementById("duration").value)
+    const calories = parseInt(document.getElementById("calories").value)
+    const date = document.getElementById("date").value
 
-  const workout = {
-    id: Date.now(),
-    type: workoutType,
-    duration: duration,
-    calories: calories,
-    date: date,
-    timestamp: new Date().toISOString(),
-    category: workoutTypes[workoutType].category,
-  }
+    const workout = {
+      id: Date.now(),
+      type: workoutType,
+      duration: duration,
+      calories: calories,
+      date: date,
+      timestamp: new Date().toISOString(),
+      category: workoutTypes[workoutType].category,
+    }
 
-  if (workoutTypes[workoutType]?.requiresDistance) {
-    workout.distance =
-      parseFloat(document.getElementById("distance").value) || 0
-  }
+    if (workoutTypes[workoutType]?.requiresDistance) {
+      workout.distance =
+        parseFloat(document.getElementById("distance").value) || 0
+    }
 
-  workouts.unshift(workout)
+    workouts.unshift(workout)
 
-  localStorage.setItem("workouts", JSON.stringify(workouts))
+    localStorage.setItem("workouts", JSON.stringify(workouts))
 
-  updateGoals(workout)
+    updateGoals(workout)
 
-  e.target.reset()
+    e.target.reset()
 
-  document.getElementById("date").value = formatDateForInput(new Date())
+    document.getElementById("date").value = formatDateForInput(new Date())
 
-  document.getElementById("distanceField").style.display = "none"
+    document.getElementById("distanceField").style.display = "none"
 
-  displayWorkouts()
+    displayWorkouts()
 
-  showNotification("Workout logged successfully!")
-})
+    showNotification("Workout logged successfully!")
+  })
+}
 
 function updateGoals(newWorkout) {
   let goalsUpdated = false
@@ -226,24 +234,35 @@ function calculateGoalProgress(goal) {
   }
 }
 
-function displayWorkouts() {
+export function displayWorkouts() {
   const workoutList = document.getElementById("workoutList")
+  // If the workoutList element doesn't exist, we're not on the workout page
+  if (!workoutList) return
+
   workoutList.innerHTML = workouts
     .map((workout) => {
-      const workoutConfig = workoutTypes[workout.type]
       const distanceInfo = workout.distance
         ? `<p><strong>Distance:</strong> ${workout.distance} ${
-            workoutConfig?.distanceLabel || "miles"
+            workoutTypes[workout.type]?.distanceLabel || "miles"
           }</p>`
         : ""
+
+      const isFavorite = favorites.includes(workout.id)
+      const favoriteClass = isFavorite ? "favorite active" : "favorite"
+      const favoriteIcon = isFavorite ? "★" : "☆"
 
       return `
       <div class="workout-card">
         <div class="workout-header">
           <h3 class="workout-type">${capitalizeFirstLetter(workout.type)}</h3>
-          <button class="delete-btn" onclick="deleteWorkout(${
-            workout.id
-          })">×</button>
+          <div class="workout-actions">
+            <button class="${favoriteClass}-btn" onclick="toggleFavorite(${
+        workout.id
+      })">${favoriteIcon}</button>
+            <button class="delete-btn" onclick="deleteWorkout(${
+              workout.id
+            })">×</button>
+          </div>
         </div>
         <div class="workout-details">
           <p><strong>Date:</strong> ${formatDate(workout.date)}</p>
@@ -303,5 +322,31 @@ function getUnitLabel(type) {
       return "workouts"
     default:
       return ""
+  }
+}
+
+window.toggleFavorite = (id) => {
+  const index = favorites.indexOf(id)
+  if (index === -1) {
+    favorites.push(id)
+    showNotification("Workout added to favorites!")
+  } else {
+    favorites.splice(index, 1)
+    showNotification("Workout removed from favorites!")
+  }
+
+  localStorage.setItem("favorites", JSON.stringify(favorites))
+  displayWorkouts()
+
+  // If we're on the home page, update the favorites display there too
+  if (document.getElementById("workoutsList")) {
+    displayHomeWorkouts()
+  }
+}
+
+export function getWorkoutsData() {
+  return {
+    workouts,
+    favorites,
   }
 }

@@ -14,7 +14,6 @@
   <body>
     <main>
       <div class="dashboard-container">
-        <!-- Welcome Section -->
         <section class="welcome-section">
           <h1>Welcome to FitPal</h1>
           <p id="motivationalQuote" class="quote-text">
@@ -27,7 +26,6 @@
           </div>
         </section>
 
-        <!-- Challenge Countdown Section -->
         <section class="countdown-section">
           <h2>Event Countdown</h2>
           <div class="countdown-container">
@@ -69,42 +67,27 @@
                   <label>Seconds</label>
                 </div>
               </div>
-              <button id="resetCountdown" class="text-btn">
+              <button id="resetCountdown" class="secondary-btn">
                 Reset Countdown
               </button>
             </div>
           </div>
         </section>
 
-        <!-- Achievements Dashboard -->
         <section class="achievements-section">
           <h2>Your Achievements</h2>
           <div
             style="overflow-y: auto; max-height: 300px"
             class="achievements-grid"
             id="achievementsGrid"
-          >
-            <!-- Badges will be dynamically inserted here -->
-          </div>
+          ></div>
         </section>
 
-        <!-- Favorite Workouts Section -->
         <section class="favorites-section">
           <h2>Favorite Workouts</h2>
-          <div class="filters">
-            <button id="showAllWorkouts" class="filter-btn active">
-              All Workouts
-            </button>
-            <button id="showFavorites" class="filter-btn">
-              Favorites Only
-            </button>
-          </div>
-          <div class="workouts-list" id="workoutsList">
-            <!-- Workouts will be dynamically inserted here -->
-          </div>
+          <div class="workouts-list" id="workoutsList"></div>
         </section>
 
-        <!-- Print Summary Section -->
         <section class="print-section">
           <div class="print-header">
             <h1>FitPal Workout Summary</h1>
@@ -112,24 +95,17 @@
           <button id="printSummary" class="primary-btn">
             <span class="icon">🖨️</span> Print Workout Summary
           </button>
-          <!-- Hidden print template -->
           <div id="printTemplate" class="print-template">
-            <div class="print-content" id="printContent">
-              <!-- Dynamic content will be inserted here -->
-            </div>
+            <div class="print-content" id="printContent"></div>
           </div>
         </section>
       </div>
     </main>
 
-    <!-- Templates for dynamic content -->
     <template id="workoutTemplate">
       <div class="workout-card">
         <div class="workout-header">
           <h3 class="workout-title"></h3>
-          <button class="favorite-btn">
-            <span class="heart-icon">♡</span>
-          </button>
         </div>
         <div class="workout-details">
           <p class="workout-date"></p>

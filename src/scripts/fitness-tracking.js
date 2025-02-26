@@ -9,6 +9,8 @@ import {
 let goals = JSON.parse(localStorage.getItem("fitness_goals") || "[]")
 const workouts = JSON.parse(localStorage.getItem("workouts") || "[]")
 
+console.log(workouts)
+
 document.addEventListener("DOMContentLoaded", () => {
   displayGoals()
   setupGoalTypeHandler()
@@ -65,13 +67,23 @@ function handleGoalSubmission(e) {
   e.preventDefault()
 
   const goalType = document.getElementById("goalType").value
+  const currentDate = new Date()
+
+  // Format the date to reset the time to midnight to avoid time comparison issues
+  const formattedDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    currentDate.getDate()
+  )
+
+  console.log("Setting goal start date to:", formattedDate)
 
   const goal = {
     id: Date.now(),
     type: goalType,
     target: parseFloat(document.getElementById("goalTarget").value),
     period: document.getElementById("goalPeriod").value,
-    startDate: new Date().toISOString(),
+    startDate: formattedDate.toISOString(),
     completed: false,
   }
 
@@ -112,6 +124,7 @@ function displayActiveGoals(activeGoals) {
     .map((goal) => {
       const progress = calculateProgress(goal)
       const progressPercentage = Math.min((progress / goal.target) * 100, 100)
+      console.log(progressPercentage, progress)
       const timeRemaining = getTimeRemaining(goal)
       const motivationalMessage = getMotivationalMessage(progressPercentage)
       const remaining = Math.max(goal.target - progress, 0)
@@ -175,49 +188,124 @@ function displayCompletedGoals(completedGoals) {
 }
 
 function calculateProgress(goal) {
+  // Create a date object from the goal's start date and normalize to midnight
   const periodStart = new Date(goal.startDate)
+  const normalizedPeriodStart = new Date(
+    periodStart.getFullYear(),
+    periodStart.getMonth(),
+    periodStart.getDate()
+  )
+
+  console.log("Goal start date (normalized):", normalizedPeriodStart)
+  console.log("Goal type:", goal.type)
+  console.log("Goal period:", goal.period)
+
+  // Log all workouts for debugging
+  console.log("All workouts:", workouts)
+
   const relevantWorkouts = workouts.filter((workout) => {
+    // Check if workout has a date property
+    if (!workout.date) {
+      console.log("Workout missing date property:", workout)
+      return false
+    }
+
+    // Create a date object from the workout's date and normalize to midnight
     const workoutDate = new Date(workout.date)
-    return (
-      workoutDate >= periodStart &&
-      isWithinPeriod(workoutDate, periodStart, goal.period)
+    const normalizedWorkoutDate = new Date(
+      workoutDate.getFullYear(),
+      workoutDate.getMonth(),
+      workoutDate.getDate()
     )
+
+    console.log(
+      "Comparing workout date (normalized):",
+      normalizedWorkoutDate,
+      "with goal start date (normalized):",
+      normalizedPeriodStart
+    )
+
+    // Compare the normalized dates
+    const isAfterStart = normalizedWorkoutDate >= normalizedPeriodStart
+    const isWithinPeriodResult = isWithinPeriod(
+      normalizedWorkoutDate,
+      normalizedPeriodStart,
+      goal.period
+    )
+
+    console.log("Is after start:", isAfterStart)
+    console.log("Is within period:", isWithinPeriodResult)
+
+    const isRelevant = isAfterStart && isWithinPeriodResult
+
+    if (isRelevant) {
+      console.log("Relevant workout found:", workout)
+    }
+
+    return isRelevant
   })
+
+  console.log("Filtered workouts count:", relevantWorkouts.length)
+
+  // Check if we have any relevant workouts
+  if (relevantWorkouts.length === 0) {
+    return 0
+  }
+
+  let progress = 0
 
   switch (goal.type) {
     case "distance":
-      return relevantWorkouts
+      progress = relevantWorkouts
         .filter((w) => ["running", "cycling", "swimming"].includes(w.type))
         .reduce((sum, w) => sum + (w.distance || 0), 0)
+      console.log("Distance progress:", progress)
+      break
 
     case "calories":
-      return relevantWorkouts.reduce((sum, w) => sum + w.calories, 0)
+      progress = relevantWorkouts.reduce((sum, w) => sum + (w.calories || 0), 0)
+      console.log("Calories progress:", progress)
+      break
 
     case "workouts":
-      return relevantWorkouts.length
+      progress = relevantWorkouts.length
+      console.log("Workouts count progress:", progress)
+      break
 
     case "duration":
-      return relevantWorkouts.reduce((sum, w) => sum + w.duration, 0)
+      progress = relevantWorkouts.reduce((sum, w) => sum + (w.duration || 0), 0)
+      console.log("Duration progress:", progress)
+      break
 
     case "specific_type":
-      return relevantWorkouts.filter((w) => w.type === goal.workoutType).length
+      progress = relevantWorkouts.filter(
+        (w) => w.type === goal.workoutType
+      ).length
+      console.log(
+        "Specific type progress:",
+        progress,
+        "for type:",
+        goal.workoutType
+      )
+      break
 
     case "category":
-      return relevantWorkouts.filter((w) => w.category === goal.category).length
+      progress = relevantWorkouts.filter(
+        (w) => w.category === goal.category
+      ).length
+      console.log(
+        "Category progress:",
+        progress,
+        "for category:",
+        goal.category
+      )
+      break
 
     default:
-      return 0
+      progress = 0
   }
-}
 
-function isWithinPeriod(date, startDate, period) {
-  const endDate = new Date(startDate)
-  if (period === "week") {
-    endDate.setDate(endDate.getDate() + 7)
-  } else if (period === "month") {
-    endDate.setMonth(endDate.getMonth() + 1)
-  }
-  return date <= endDate
+  return progress
 }
 
 function getTimeRemaining(goal) {
@@ -271,37 +359,6 @@ function formatGoalTitle(goal) {
   return `${baseTitle} in a ${goal.period}`
 }
 
-function getUnitLabel(type) {
-  switch (type) {
-    case "distance":
-      return "miles"
-    case "calories":
-      return "calories"
-    case "workouts":
-      return "workouts"
-    case "duration":
-      return "minutes"
-    case "specific_type":
-      return "workouts"
-    case "category":
-      return "workouts"
-    default:
-      return ""
-  }
-}
-
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1)
-}
-
-function formatDate(dateString) {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
-
 window.deleteGoal = (id) => {
   if (confirm("Are you sure you want to delete this goal?")) {
     goals = goals.filter((goal) => goal.id !== id)
@@ -309,18 +366,6 @@ window.deleteGoal = (id) => {
     displayGoals()
     showNotification("Goal deleted successfully!")
   }
-}
-
-function showNotification(message) {
-  const notification = document.createElement("div")
-  notification.className = "notification"
-  notification.textContent = message
-  document.body.appendChild(notification)
-
-  setTimeout(() => {
-    notification.classList.add("fade-out")
-    setTimeout(() => notification.remove(), 500)
-  }, 3000)
 }
 
 function animateGoalCompletion(goalId) {
