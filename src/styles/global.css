@@ -139,7 +139,7 @@ h4 {
 
 /* Main Content */
 main {
-  max-width: 1300px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: var(--spacing-xl);
 }
@@ -148,7 +148,7 @@ main {
 .dashboard-container {
   display: grid;
   gap: var(--spacing-xl);
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 }
 
 /* Section Styling */

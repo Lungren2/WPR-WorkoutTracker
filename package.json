@@ -1,8 +1,7 @@
 {
   "name": "fitpal",
   "scripts": {
-    "start": "servor src --reload",
-    "build": "mkdir -p dist && cp -r src/* dist/"
+    "start": "servor src --reload"
   },
   "dependencies": {
     "servor": "^4.0.2"

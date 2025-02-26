@@ -1,0 +1,15 @@
+# FitPal - Your Fitness Companion
+
+To run the project locally, type the following commands into your terminal:
+
+```bash
+
+npm install
+
+```
+
+```bash
+
+npm run start
+
+```
